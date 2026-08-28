@@ -1,0 +1,48 @@
+{
+  "category_filter": "grounded",
+  "total_cases": 3,
+  "passed_cases": 3,
+  "failed_cases": 0,
+  "routing_accuracy": 1.0,
+  "results": [
+    {
+      "id": "grounded_01",
+      "category": "grounded",
+      "question": "According to the RAG paper, what are parametric memory and non-parametric memory?",
+      "expected_status": "answered",
+      "actual_status": "answered",
+      "passed": true,
+      "decision_reason": "rag_evidence_sufficient",
+      "citation_count": 3,
+      "research_job_id": null,
+      "service": null,
+      "elapsed_seconds": 10.988
+    },
+    {
+      "id": "grounded_02",
+      "category": "grounded",
+      "question": "According to the RAG paper, what role does the retriever play in retrieval-augmented generation?",
+      "expected_status": "answered",
+      "actual_status": "answered",
+      "passed": true,
+      "decision_reason": "rag_evidence_sufficient",
+      "citation_count": 3,
+      "research_job_id": null,
+      "service": null,
+      "elapsed_seconds": 11.168
+    },
+    {
+      "id": "grounded_03",
+      "category": "grounded",
+      "question": "According to the RAG paper, how does retrieval-augmented generation combine retrieved knowledge with generation?",
+      "expected_status": "answered",
+      "actual_status": "answered",
+      "passed": true,
+      "decision_reason": "rag_evidence_sufficient",
+      "citation_count": 3,
+      "research_job_id": null,
+      "service": null,
+      "elapsed_seconds": 12.856
+    }
+  ]
+}

@@ -1,0 +1,48 @@
+{
+  "category_filter": "out_of_scope",
+  "total_cases": 3,
+  "passed_cases": 3,
+  "failed_cases": 0,
+  "routing_accuracy": 1.0,
+  "results": [
+    {
+      "id": "fallback_01",
+      "category": "out_of_scope",
+      "question": "What are the current visa requirements for a tourist visiting Japan in 2026?",
+      "expected_status": "escalated",
+      "actual_status": "escalated",
+      "passed": true,
+      "decision_reason": "insufficient_rag_evidence",
+      "citation_count": null,
+      "research_job_id": "6c20f9e0-3d1e-4eea-bfed-ce0dea19fdaa",
+      "service": null,
+      "elapsed_seconds": 0.651
+    },
+    {
+      "id": "fallback_02",
+      "category": "out_of_scope",
+      "question": "What is today's weather forecast in Tokyo?",
+      "expected_status": "escalated",
+      "actual_status": "escalated",
+      "passed": true,
+      "decision_reason": "insufficient_rag_evidence",
+      "citation_count": null,
+      "research_job_id": "cc234eb5-7bac-45b4-b40a-65fe40c0cbc9",
+      "service": null,
+      "elapsed_seconds": 0.719
+    },
+    {
+      "id": "fallback_03",
+      "category": "out_of_scope",
+      "question": "What were the latest Premier League results this week?",
+      "expected_status": "escalated",
+      "actual_status": "escalated",
+      "passed": true,
+      "decision_reason": "insufficient_rag_evidence",
+      "citation_count": null,
+      "research_job_id": "5927a244-90f1-4253-aabf-54d223dfcfcd",
+      "service": null,
+      "elapsed_seconds": 0.593
+    }
+  ]
+}

@@ -1,0 +1,48 @@
+{
+  "category_filter": "invalid",
+  "total_cases": 3,
+  "passed_cases": 3,
+  "failed_cases": 0,
+  "routing_accuracy": 1.0,
+  "results": [
+    {
+      "id": "invalid_01",
+      "category": "invalid",
+      "question": "Hi",
+      "expected_status": "rejected",
+      "actual_status": "rejected",
+      "passed": true,
+      "decision_reason": "invalid_question",
+      "citation_count": null,
+      "research_job_id": null,
+      "service": null,
+      "elapsed_seconds": 0.314
+    },
+    {
+      "id": "invalid_02",
+      "category": "invalid",
+      "question": "?",
+      "expected_status": "rejected",
+      "actual_status": "rejected",
+      "passed": true,
+      "decision_reason": "invalid_question",
+      "citation_count": null,
+      "research_job_id": null,
+      "service": null,
+      "elapsed_seconds": 0.268
+    },
+    {
+      "id": "invalid_03",
+      "category": "invalid",
+      "question": "Hello",
+      "expected_status": "rejected",
+      "actual_status": "rejected",
+      "passed": true,
+      "decision_reason": "invalid_question",
+      "citation_count": null,
+      "research_job_id": null,
+      "service": null,
+      "elapsed_seconds": 0.118
+    }
+  ]
+}

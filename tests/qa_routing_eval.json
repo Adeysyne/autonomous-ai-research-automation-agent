@@ -1,0 +1,56 @@
+[
+  {
+    "id": "invalid_01",
+    "question": "Hi",
+    "category": "invalid",
+    "expected_status": "rejected"
+  },
+  {
+    "id": "invalid_02",
+    "question": "?",
+    "category": "invalid",
+    "expected_status": "rejected"
+  },
+  {
+    "id": "invalid_03",
+    "question": "Hello",
+    "category": "invalid",
+    "expected_status": "rejected"
+  },
+  {
+    "id": "grounded_01",
+    "question": "According to the RAG paper, what are parametric memory and non-parametric memory?",
+    "category": "grounded",
+    "expected_status": "answered"
+  },
+  {
+    "id": "grounded_02",
+    "question": "According to the RAG paper, what role does the retriever play in retrieval-augmented generation?",
+    "category": "grounded",
+    "expected_status": "answered"
+  },
+  {
+    "id": "grounded_03",
+    "question": "According to the RAG paper, how does retrieval-augmented generation combine retrieved knowledge with generation?",
+    "category": "grounded",
+    "expected_status": "answered"
+  },
+  {
+    "id": "fallback_01",
+    "question": "What are the current visa requirements for a tourist visiting Japan in 2026?",
+    "category": "out_of_scope",
+    "expected_status": "escalated"
+  },
+  {
+    "id": "fallback_02",
+    "question": "What is today's weather forecast in Tokyo?",
+    "category": "out_of_scope",
+    "expected_status": "escalated"
+  },
+  {
+    "id": "fallback_03",
+    "question": "What were the latest Premier League results this week?",
+    "category": "out_of_scope",
+    "expected_status": "escalated"
+  }
+]
