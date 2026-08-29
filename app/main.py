@@ -1,57 +1,88 @@
-from datetime import datetime, timezone
-from typing import Literal
-from uuid import uuid4
+from fastapi import FastAPI, HTTPException
 
-from fastapi import FastAPI
-from pydantic import BaseModel, Field
+from app.job_store import research_job_store
+from app.models import ResearchRequest
 
 
 app = FastAPI(
     title="Autonomous AI Research & Automation Agent",
     description=(
         "API foundation for receiving, validating, "
-        "and orchestrating autonomous research tasks."
+        "tracking, and orchestrating autonomous "
+        "research tasks."
     ),
-    version="0.1.0",
+    version="0.3.0",
 )
-
-
-class ResearchRequest(BaseModel):
-    question: str = Field(
-        ...,
-        min_length=10,
-        description="Research question to investigate.",
-    )
-
-    depth: Literal[
-        "quick",
-        "standard",
-        "deep",
-    ] = "standard"
-
-    delivery: Literal[
-        "api",
-        "email",
-        "slack",
-    ] = "api"
 
 
 @app.get("/health")
 def health_check():
     return {
         "status": "healthy",
-        "service": "Autonomous AI Research & Automation Agent",
+        "service": (
+            "Autonomous AI Research & Automation Agent"
+        ),
     }
 
 
 @app.post("/research/intake")
-def research_intake(request: ResearchRequest):
-    request_id = str(uuid4())
+def research_intake(
+    request: ResearchRequest,
+):
+    job = research_job_store.create(request)
 
     return {
-        "request_id": request_id,
-        "status": "accepted",
-        "created_at": datetime.now(timezone.utc).isoformat(),
-        "research_request": request.model_dump(),
-        "next_stage": "planner",
+        "request_id": job.request_id,
+        "status": job.status,
+        "created_at": job.created_at,
+        "research_request": (
+            job.research_request.model_dump()
+        ),
+        "next_stage": job.current_stage,
     }
+
+
+@app.get("/research/{request_id}")
+def get_research_job(
+    request_id: str,
+):
+    job = research_job_store.get(
+        request_id
+    )
+
+    if job is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Research job not found.",
+        )
+
+    return job.model_dump()
+
+
+@app.post("/research/{request_id}/advance")
+def advance_research_job(
+    request_id: str,
+):
+    job = research_job_store.get(
+        request_id
+    )
+
+    if job is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Research job not found.",
+        )
+
+    if job.status == "completed":
+        raise HTTPException(
+            status_code=409,
+            detail=(
+                "Research job is already completed."
+            ),
+        )
+
+    updated_job = research_job_store.advance(
+        request_id
+    )
+
+    return updated_job.model_dump()

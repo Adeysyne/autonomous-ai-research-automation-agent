@@ -1,9 +1,30 @@
+import pytest
 from fastapi.testclient import TestClient
 
+from app.job_store import research_job_store
 from app.main import app
 
 
 client = TestClient(app)
+
+
+VALID_REQUEST = {
+    "question": (
+        "What are the major approaches "
+        "to evaluating agentic AI systems?"
+    ),
+    "depth": "standard",
+    "delivery": "api",
+}
+
+
+@pytest.fixture(autouse=True)
+def clear_research_jobs():
+    research_job_store.clear()
+
+    yield
+
+    research_job_store.clear()
 
 
 def test_health_endpoint():
@@ -14,6 +35,7 @@ def test_health_endpoint():
     data = response.json()
 
     assert data["status"] == "healthy"
+
     assert (
         data["service"]
         == "Autonomous AI Research & Automation Agent"
@@ -23,14 +45,7 @@ def test_health_endpoint():
 def test_research_intake_success():
     response = client.post(
         "/research/intake",
-        json={
-            "question": (
-                "What are the major approaches "
-                "to evaluating agentic AI systems?"
-            ),
-            "depth": "standard",
-            "delivery": "api",
-        },
+        json=VALID_REQUEST,
     )
 
     assert response.status_code == 200
@@ -39,6 +54,7 @@ def test_research_intake_success():
 
     assert data["status"] == "accepted"
     assert data["next_stage"] == "planner"
+
     assert "request_id" in data
     assert "created_at" in data
 
@@ -50,6 +66,143 @@ def test_research_intake_success():
     assert (
         data["research_request"]["delivery"]
         == "api"
+    )
+
+
+def test_research_job_can_be_retrieved():
+    create_response = client.post(
+        "/research/intake",
+        json=VALID_REQUEST,
+    )
+
+    created = create_response.json()
+
+    request_id = created["request_id"]
+
+    response = client.get(
+        f"/research/{request_id}"
+    )
+
+    assert response.status_code == 200
+
+    data = response.json()
+
+    assert data["request_id"] == request_id
+    assert data["status"] == "accepted"
+    assert data["current_stage"] == "planner"
+
+    assert data["result"] is None
+
+    assert len(data["history"]) == 1
+
+    assert (
+        data["history"][0]["status"]
+        == "accepted"
+    )
+
+
+def test_research_job_lifecycle():
+    create_response = client.post(
+        "/research/intake",
+        json=VALID_REQUEST,
+    )
+
+    request_id = (
+        create_response.json()["request_id"]
+    )
+
+    expected_transitions = [
+        ("planning", "planner"),
+        ("researching", "researcher"),
+        ("synthesizing", "synthesizer"),
+        ("completed", "complete"),
+    ]
+
+    for expected_status, expected_stage in (
+        expected_transitions
+    ):
+        response = client.post(
+            f"/research/{request_id}/advance"
+        )
+
+        assert response.status_code == 200
+
+        data = response.json()
+
+        assert (
+            data["status"]
+            == expected_status
+        )
+
+        assert (
+            data["current_stage"]
+            == expected_stage
+        )
+
+    final_response = client.get(
+        f"/research/{request_id}"
+    )
+
+    final_data = final_response.json()
+
+    assert final_data["status"] == "completed"
+    assert final_data["current_stage"] == "complete"
+
+    assert len(final_data["history"]) == 5
+
+
+def test_completed_job_cannot_advance():
+    create_response = client.post(
+        "/research/intake",
+        json=VALID_REQUEST,
+    )
+
+    request_id = (
+        create_response.json()["request_id"]
+    )
+
+    for _ in range(4):
+        response = client.post(
+            f"/research/{request_id}/advance"
+        )
+
+        assert response.status_code == 200
+
+    response = client.post(
+        f"/research/{request_id}/advance"
+    )
+
+    assert response.status_code == 409
+
+    assert (
+        response.json()["detail"]
+        == "Research job is already completed."
+    )
+
+
+def test_unknown_research_job_returns_404():
+    response = client.get(
+        "/research/does-not-exist"
+    )
+
+    assert response.status_code == 404
+
+    assert (
+        response.json()["detail"]
+        == "Research job not found."
+    )
+
+
+def test_unknown_research_job_cannot_advance():
+    response = client.post(
+        "/research/does-not-exist/advance"
+    )
+
+    assert response.status_code == 404
+
+    assert (
+        response.json()["detail"]
+        == "Research job not found."
     )
 
 
