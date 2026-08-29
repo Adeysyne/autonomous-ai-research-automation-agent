@@ -1,4 +1,4 @@
-from typing import Any, Literal
+from typing import Literal
 
 from pydantic import BaseModel, Field
 
@@ -43,12 +43,24 @@ class ResearchRequest(BaseModel):
 
 class ResearchPlan(BaseModel):
     research_objective: str
-
     sub_questions: list[str]
-
     search_strategy: list[str]
-
     completion_criteria: list[str]
+
+
+class ResearchFinding(BaseModel):
+    sub_question: str
+    finding: str
+    evidence: list[str]
+    source_urls: list[str]
+
+
+class ResearchFindings(BaseModel):
+    findings: list[ResearchFinding]
+
+    unresolved_gaps: list[str] = Field(
+        default_factory=list
+    )
 
 
 class ResearchJobEvent(BaseModel):
@@ -74,8 +86,6 @@ class ResearchJob(BaseModel):
 
     plan: ResearchPlan | None = None
 
-    research_notes: list[dict[str, Any]] = Field(
-        default_factory=list
-    )
+    research_findings: ResearchFindings | None = None
 
     result: str | None = None

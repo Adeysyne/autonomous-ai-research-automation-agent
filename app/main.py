@@ -2,6 +2,7 @@ from fastapi import FastAPI, HTTPException
 
 from app.job_store import research_job_store
 from app.models import (
+    ResearchFindings,
     ResearchPlan,
     ResearchRequest,
 )
@@ -14,7 +15,7 @@ app = FastAPI(
         "tracking, and orchestrating autonomous "
         "research tasks."
     ),
-    version="0.4.0",
+    version="0.5.0",
 )
 
 
@@ -79,6 +80,25 @@ def save_research_plan(
     return job.model_dump()
 
 
+@app.post("/research/{request_id}/findings")
+def save_research_findings(
+    request_id: str,
+    findings: ResearchFindings,
+):
+    job = research_job_store.save_findings(
+        request_id,
+        findings,
+    )
+
+    if job is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Research job not found.",
+        )
+
+    return job.model_dump()
+
+
 @app.post("/research/{request_id}/advance")
 def advance_research_job(
     request_id: str,
@@ -94,9 +114,7 @@ def advance_research_job(
     if job.status == "completed":
         raise HTTPException(
             status_code=409,
-            detail=(
-                "Research job is already completed."
-            ),
+            detail="Research job is already completed.",
         )
 
     updated_job = research_job_store.advance(

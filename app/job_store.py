@@ -2,6 +2,7 @@ from datetime import datetime, timezone
 from uuid import uuid4
 
 from app.models import (
+    ResearchFindings,
     ResearchJob,
     ResearchJobEvent,
     ResearchPlan,
@@ -49,7 +50,7 @@ class InMemoryResearchJobStore:
             updated_at=now,
             research_request=request,
             plan=None,
-            research_notes=[],
+            research_findings=None,
             result=None,
             history=[
                 ResearchJobEvent(
@@ -81,6 +82,23 @@ class InMemoryResearchJobStore:
             return None
 
         job.plan = plan
+        job.updated_at = datetime.now(
+            timezone.utc
+        ).isoformat()
+
+        return job
+
+    def save_findings(
+        self,
+        request_id: str,
+        findings: ResearchFindings,
+    ) -> ResearchJob | None:
+        job = self.get(request_id)
+
+        if job is None:
+            return None
+
+        job.research_findings = findings
         job.updated_at = datetime.now(
             timezone.utc
         ).isoformat()

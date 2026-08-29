@@ -306,3 +306,49 @@ def test_saved_plan_is_available_when_job_is_retrieved():
     assert response.status_code == 200
 
     assert response.json()["plan"] == plan
+
+def test_research_findings_can_be_saved():
+    create_response = client.post(
+        "/research/intake",
+        json=VALID_REQUEST,
+    )
+
+    request_id = (
+        create_response.json()["request_id"]
+    )
+
+    findings = {
+        "findings": [
+            {
+                "sub_question": (
+                    "How should reliability be measured?"
+                ),
+                "finding": (
+                    "Reliability should be evaluated "
+                    "across repeated task executions."
+                ),
+                "evidence": [
+                    (
+                        "Repeated trials expose variance "
+                        "and execution instability."
+                    )
+                ],
+                "source_urls": [
+                    "https://example.com/source"
+                ],
+            }
+        ],
+        "unresolved_gaps": [],
+    }
+
+    response = client.post(
+        f"/research/{request_id}/findings",
+        json=findings,
+    )
+
+    assert response.status_code == 200
+
+    assert (
+        response.json()["research_findings"]
+        == findings
+    )    
