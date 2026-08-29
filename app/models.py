@@ -1,4 +1,4 @@
-from typing import Literal
+from typing import Any, Literal
 
 from pydantic import BaseModel, Field
 
@@ -41,6 +41,16 @@ class ResearchRequest(BaseModel):
     ] = "api"
 
 
+class ResearchPlan(BaseModel):
+    research_objective: str
+
+    sub_questions: list[str]
+
+    search_strategy: list[str]
+
+    completion_criteria: list[str]
+
+
 class ResearchJobEvent(BaseModel):
     status: ResearchStatus
     current_stage: ResearchStage
@@ -59,6 +69,12 @@ class ResearchJob(BaseModel):
     research_request: ResearchRequest
 
     history: list[ResearchJobEvent] = Field(
+        default_factory=list
+    )
+
+    plan: ResearchPlan | None = None
+
+    research_notes: list[dict[str, Any]] = Field(
         default_factory=list
     )
 

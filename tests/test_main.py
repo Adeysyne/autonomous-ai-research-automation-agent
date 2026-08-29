@@ -75,9 +75,9 @@ def test_research_job_can_be_retrieved():
         json=VALID_REQUEST,
     )
 
-    created = create_response.json()
-
-    request_id = created["request_id"]
+    request_id = (
+        create_response.json()["request_id"]
+    )
 
     response = client.get(
         f"/research/{request_id}"
@@ -90,7 +90,6 @@ def test_research_job_can_be_retrieved():
     assert data["request_id"] == request_id
     assert data["status"] == "accepted"
     assert data["current_stage"] == "planner"
-
     assert data["result"] is None
 
     assert len(data["history"]) == 1
@@ -118,9 +117,7 @@ def test_research_job_lifecycle():
         ("completed", "complete"),
     ]
 
-    for expected_status, expected_stage in (
-        expected_transitions
-    ):
+    for expected_status, expected_stage in expected_transitions:
         response = client.post(
             f"/research/{request_id}/advance"
         )
@@ -129,15 +126,8 @@ def test_research_job_lifecycle():
 
         data = response.json()
 
-        assert (
-            data["status"]
-            == expected_status
-        )
-
-        assert (
-            data["current_stage"]
-            == expected_stage
-        )
+        assert data["status"] == expected_status
+        assert data["current_stage"] == expected_stage
 
     final_response = client.get(
         f"/research/{request_id}"
@@ -233,3 +223,86 @@ def test_research_intake_rejects_invalid_depth():
     )
 
     assert response.status_code == 422
+
+
+def test_research_plan_can_be_saved():
+    create_response = client.post(
+        "/research/intake",
+        json=VALID_REQUEST,
+    )
+
+    request_id = (
+        create_response.json()["request_id"]
+    )
+
+    client.post(
+        f"/research/{request_id}/advance"
+    )
+
+    plan = {
+        "research_objective": (
+            "Evaluate major approaches for "
+            "agentic AI system assessment."
+        ),
+        "sub_questions": [
+            "How should reliability be measured?",
+            "How should safety be measured?",
+            "How should tool-use failures be evaluated?",
+        ],
+        "search_strategy": [
+            "Review peer-reviewed literature.",
+            "Compare evaluation frameworks.",
+        ],
+        "completion_criteria": [
+            "Identify major evaluation dimensions.",
+            "Provide evidence-backed recommendations.",
+        ],
+    }
+
+    response = client.post(
+        f"/research/{request_id}/plan",
+        json=plan,
+    )
+
+    assert response.status_code == 200
+
+    data = response.json()
+
+    assert data["plan"] == plan
+
+
+def test_saved_plan_is_available_when_job_is_retrieved():
+    create_response = client.post(
+        "/research/intake",
+        json=VALID_REQUEST,
+    )
+
+    request_id = (
+        create_response.json()["request_id"]
+    )
+
+    plan = {
+        "research_objective": "Evaluate agentic AI.",
+        "sub_questions": [
+            "What should be measured?"
+        ],
+        "search_strategy": [
+            "Review relevant literature."
+        ],
+        "completion_criteria": [
+            "Produce evidence-backed findings."
+        ],
+    }
+
+    client.post(
+        f"/research/{request_id}/plan",
+        json=plan,
+    )
+
+    response = client.get(
+        f"/research/{request_id}"
+    )
+
+    assert response.status_code == 200
+
+    assert response.json()["plan"] == plan

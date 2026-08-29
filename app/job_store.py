@@ -4,6 +4,7 @@ from uuid import uuid4
 from app.models import (
     ResearchJob,
     ResearchJobEvent,
+    ResearchPlan,
     ResearchRequest,
 )
 
@@ -47,6 +48,8 @@ class InMemoryResearchJobStore:
             created_at=now,
             updated_at=now,
             research_request=request,
+            plan=None,
+            research_notes=[],
             result=None,
             history=[
                 ResearchJobEvent(
@@ -66,6 +69,23 @@ class InMemoryResearchJobStore:
         request_id: str,
     ) -> ResearchJob | None:
         return self._jobs.get(request_id)
+
+    def save_plan(
+        self,
+        request_id: str,
+        plan: ResearchPlan,
+    ) -> ResearchJob | None:
+        job = self.get(request_id)
+
+        if job is None:
+            return None
+
+        job.plan = plan
+        job.updated_at = datetime.now(
+            timezone.utc
+        ).isoformat()
+
+        return job
 
     def advance(
         self,
