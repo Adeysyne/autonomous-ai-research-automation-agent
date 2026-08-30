@@ -235,10 +235,6 @@ def test_research_plan_can_be_saved():
         create_response.json()["request_id"]
     )
 
-    client.post(
-        f"/research/{request_id}/advance"
-    )
-
     plan = {
         "research_objective": (
             "Evaluate major approaches for "
@@ -266,9 +262,7 @@ def test_research_plan_can_be_saved():
 
     assert response.status_code == 200
 
-    data = response.json()
-
-    assert data["plan"] == plan
+    assert response.json()["plan"] == plan
 
 
 def test_saved_plan_is_available_when_job_is_retrieved():
@@ -306,6 +300,7 @@ def test_saved_plan_is_available_when_job_is_retrieved():
     assert response.status_code == 200
 
     assert response.json()["plan"] == plan
+
 
 def test_research_findings_can_be_saved():
     create_response = client.post(
@@ -351,4 +346,48 @@ def test_research_findings_can_be_saved():
     assert (
         response.json()["research_findings"]
         == findings
-    )    
+    )
+
+
+def test_research_result_can_be_saved():
+    create_response = client.post(
+        "/research/intake",
+        json=VALID_REQUEST,
+    )
+
+    request_id = (
+        create_response.json()["request_id"]
+    )
+
+    result = {
+        "executive_summary": (
+            "Agentic AI evaluation requires "
+            "multi-dimensional testing."
+        ),
+        "key_findings": [
+            "Reliability requires repeated trials.",
+            "Safety requires explicit failure testing.",
+        ],
+        "recommendations": [
+            "Use reproducible evaluation protocols.",
+            "Track recovery and tool-use failures.",
+        ],
+        "limitations": [
+            "Benchmarks vary across application domains."
+        ],
+        "source_urls": [
+            "https://www.nist.gov/"
+        ],
+    }
+
+    response = client.post(
+        f"/research/{request_id}/result",
+        json=result,
+    )
+
+    assert response.status_code == 200
+
+    assert (
+        response.json()["result"]
+        == result
+    )

@@ -7,6 +7,7 @@ from app.models import (
     ResearchJobEvent,
     ResearchPlan,
     ResearchRequest,
+    ResearchResult,
 )
 
 
@@ -99,6 +100,23 @@ class InMemoryResearchJobStore:
             return None
 
         job.research_findings = findings
+        job.updated_at = datetime.now(
+            timezone.utc
+        ).isoformat()
+
+        return job
+
+    def save_result(
+        self,
+        request_id: str,
+        result: ResearchResult,
+    ) -> ResearchJob | None:
+        job = self.get(request_id)
+
+        if job is None:
+            return None
+
+        job.result = result
         job.updated_at = datetime.now(
             timezone.utc
         ).isoformat()

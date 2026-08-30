@@ -5,6 +5,7 @@ from app.models import (
     ResearchFindings,
     ResearchPlan,
     ResearchRequest,
+    ResearchResult,
 )
 
 
@@ -15,7 +16,7 @@ app = FastAPI(
         "tracking, and orchestrating autonomous "
         "research tasks."
     ),
-    version="0.5.0",
+    version="0.6.0",
 )
 
 
@@ -88,6 +89,25 @@ def save_research_findings(
     job = research_job_store.save_findings(
         request_id,
         findings,
+    )
+
+    if job is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Research job not found.",
+        )
+
+    return job.model_dump()
+
+
+@app.post("/research/{request_id}/result")
+def save_research_result(
+    request_id: str,
+    result: ResearchResult,
+):
+    job = research_job_store.save_result(
+        request_id,
+        result,
     )
 
     if job is None:

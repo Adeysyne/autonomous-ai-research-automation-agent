@@ -63,6 +63,14 @@ class ResearchFindings(BaseModel):
     )
 
 
+class ResearchResult(BaseModel):
+    executive_summary: str
+    key_findings: list[str]
+    recommendations: list[str]
+    limitations: list[str]
+    source_urls: list[str]
+
+
 class ResearchJobEvent(BaseModel):
     status: ResearchStatus
     current_stage: ResearchStage
@@ -88,4 +96,4 @@ class ResearchJob(BaseModel):
 
     research_findings: ResearchFindings | None = None
 
-    result: str | None = None
+    result: ResearchResult | None = None
