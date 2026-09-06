@@ -1,0 +1,23 @@
+[
+  {
+    "id": "agent_reliability_01",
+    "question": "What are the most important methods for evaluating reliability, safety, and failure recovery in autonomous AI agents?",
+    "depth": "standard",
+    "min_findings": 3,
+    "min_sources": 3
+  },
+  {
+    "id": "rag_evaluation_02",
+    "question": "What are effective methods for evaluating RAG systems across retrieval quality, groundedness, hallucination, and answer usefulness?",
+    "depth": "standard",
+    "min_findings": 3,
+    "min_sources": 3
+  },
+  {
+    "id": "tool_agent_security_03",
+    "question": "How should organizations evaluate AI agents that use external tools for security, reliability, human oversight, and recovery from tool failures?",
+    "depth": "standard",
+    "min_findings": 3,
+    "min_sources": 3
+  }
+]

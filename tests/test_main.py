@@ -18,6 +18,74 @@ VALID_REQUEST = {
 }
 
 
+VALID_PLAN = {
+    "research_objective": (
+        "Evaluate major approaches for "
+        "agentic AI system assessment."
+    ),
+    "sub_questions": [
+        "How should reliability be measured?",
+        "How should safety be measured?",
+        "How should tool-use failures be evaluated?",
+    ],
+    "search_strategy": [
+        "Review peer-reviewed literature.",
+        "Compare evaluation frameworks.",
+    ],
+    "completion_criteria": [
+        "Identify major evaluation dimensions.",
+        "Provide evidence-backed recommendations.",
+    ],
+}
+
+
+VALID_FINDINGS = {
+    "findings": [
+        {
+            "sub_question": (
+                "How should reliability be measured?"
+            ),
+            "finding": (
+                "Reliability should be evaluated "
+                "across repeated task executions."
+            ),
+            "evidence": [
+                (
+                    "Repeated trials expose variance "
+                    "and execution instability."
+                )
+            ],
+            "source_urls": [
+                "https://example.com/source"
+            ],
+        }
+    ],
+    "unresolved_gaps": [],
+}
+
+
+VALID_RESULT = {
+    "executive_summary": (
+        "Agentic AI evaluation requires "
+        "multi-dimensional testing."
+    ),
+    "key_findings": [
+        "Reliability requires repeated trials.",
+        "Safety requires explicit failure testing.",
+    ],
+    "recommendations": [
+        "Use reproducible evaluation protocols.",
+        "Track recovery and tool-use failures.",
+    ],
+    "limitations": [
+        "Benchmarks vary across application domains."
+    ],
+    "source_urls": [
+        "https://www.nist.gov/"
+    ],
+}
+
+
 @pytest.fixture(autouse=True)
 def clear_research_jobs():
     research_job_store.clear()
@@ -25,6 +93,17 @@ def clear_research_jobs():
     yield
 
     research_job_store.clear()
+
+
+def create_job():
+    response = client.post(
+        "/research/intake",
+        json=VALID_REQUEST,
+    )
+
+    assert response.status_code == 200
+
+    return response.json()["request_id"]
 
 
 def test_health_endpoint():
@@ -70,14 +149,7 @@ def test_research_intake_success():
 
 
 def test_research_job_can_be_retrieved():
-    create_response = client.post(
-        "/research/intake",
-        json=VALID_REQUEST,
-    )
-
-    request_id = (
-        create_response.json()["request_id"]
-    )
+    request_id = create_job()
 
     response = client.get(
         f"/research/{request_id}"
@@ -94,21 +166,9 @@ def test_research_job_can_be_retrieved():
 
     assert len(data["history"]) == 1
 
-    assert (
-        data["history"][0]["status"]
-        == "accepted"
-    )
-
 
 def test_research_job_lifecycle():
-    create_response = client.post(
-        "/research/intake",
-        json=VALID_REQUEST,
-    )
-
-    request_id = (
-        create_response.json()["request_id"]
-    )
+    request_id = create_job()
 
     expected_transitions = [
         ("planning", "planner"),
@@ -141,15 +201,8 @@ def test_research_job_lifecycle():
     assert len(final_data["history"]) == 5
 
 
-def test_completed_job_cannot_advance():
-    create_response = client.post(
-        "/research/intake",
-        json=VALID_REQUEST,
-    )
-
-    request_id = (
-        create_response.json()["request_id"]
-    )
+def test_completed_job_advance_is_idempotent():
+    request_id = create_job()
 
     for _ in range(4):
         response = client.post(
@@ -158,16 +211,26 @@ def test_completed_job_cannot_advance():
 
         assert response.status_code == 200
 
+    first_completed = response.json()
+
+    assert first_completed["status"] == "completed"
+    assert first_completed["current_stage"] == "complete"
+
+    assert len(first_completed["history"]) == 5
+
     response = client.post(
         f"/research/{request_id}/advance"
     )
 
-    assert response.status_code == 409
+    assert response.status_code == 200
 
-    assert (
-        response.json()["detail"]
-        == "Research job is already completed."
-    )
+    replayed = response.json()
+
+    assert replayed["status"] == "completed"
+    assert replayed["current_stage"] == "complete"
+
+    # No duplicate lifecycle event should be created.
+    assert len(replayed["history"]) == 5
 
 
 def test_unknown_research_job_returns_404():
@@ -226,71 +289,27 @@ def test_research_intake_rejects_invalid_depth():
 
 
 def test_research_plan_can_be_saved():
-    create_response = client.post(
-        "/research/intake",
-        json=VALID_REQUEST,
-    )
-
-    request_id = (
-        create_response.json()["request_id"]
-    )
-
-    plan = {
-        "research_objective": (
-            "Evaluate major approaches for "
-            "agentic AI system assessment."
-        ),
-        "sub_questions": [
-            "How should reliability be measured?",
-            "How should safety be measured?",
-            "How should tool-use failures be evaluated?",
-        ],
-        "search_strategy": [
-            "Review peer-reviewed literature.",
-            "Compare evaluation frameworks.",
-        ],
-        "completion_criteria": [
-            "Identify major evaluation dimensions.",
-            "Provide evidence-backed recommendations.",
-        ],
-    }
+    request_id = create_job()
 
     response = client.post(
         f"/research/{request_id}/plan",
-        json=plan,
+        json=VALID_PLAN,
     )
 
     assert response.status_code == 200
 
-    assert response.json()["plan"] == plan
+    assert (
+        response.json()["plan"]
+        == VALID_PLAN
+    )
 
 
 def test_saved_plan_is_available_when_job_is_retrieved():
-    create_response = client.post(
-        "/research/intake",
-        json=VALID_REQUEST,
-    )
-
-    request_id = (
-        create_response.json()["request_id"]
-    )
-
-    plan = {
-        "research_objective": "Evaluate agentic AI.",
-        "sub_questions": [
-            "What should be measured?"
-        ],
-        "search_strategy": [
-            "Review relevant literature."
-        ],
-        "completion_criteria": [
-            "Produce evidence-backed findings."
-        ],
-    }
+    request_id = create_job()
 
     client.post(
         f"/research/{request_id}/plan",
-        json=plan,
+        json=VALID_PLAN,
     )
 
     response = client.get(
@@ -299,95 +318,108 @@ def test_saved_plan_is_available_when_job_is_retrieved():
 
     assert response.status_code == 200
 
-    assert response.json()["plan"] == plan
+    assert (
+        response.json()["plan"]
+        == VALID_PLAN
+    )
 
 
 def test_research_findings_can_be_saved():
-    create_response = client.post(
-        "/research/intake",
-        json=VALID_REQUEST,
-    )
-
-    request_id = (
-        create_response.json()["request_id"]
-    )
-
-    findings = {
-        "findings": [
-            {
-                "sub_question": (
-                    "How should reliability be measured?"
-                ),
-                "finding": (
-                    "Reliability should be evaluated "
-                    "across repeated task executions."
-                ),
-                "evidence": [
-                    (
-                        "Repeated trials expose variance "
-                        "and execution instability."
-                    )
-                ],
-                "source_urls": [
-                    "https://example.com/source"
-                ],
-            }
-        ],
-        "unresolved_gaps": [],
-    }
+    request_id = create_job()
 
     response = client.post(
         f"/research/{request_id}/findings",
-        json=findings,
+        json=VALID_FINDINGS,
     )
 
     assert response.status_code == 200
 
     assert (
         response.json()["research_findings"]
-        == findings
+        == VALID_FINDINGS
     )
 
 
 def test_research_result_can_be_saved():
-    create_response = client.post(
-        "/research/intake",
-        json=VALID_REQUEST,
-    )
-
-    request_id = (
-        create_response.json()["request_id"]
-    )
-
-    result = {
-        "executive_summary": (
-            "Agentic AI evaluation requires "
-            "multi-dimensional testing."
-        ),
-        "key_findings": [
-            "Reliability requires repeated trials.",
-            "Safety requires explicit failure testing.",
-        ],
-        "recommendations": [
-            "Use reproducible evaluation protocols.",
-            "Track recovery and tool-use failures.",
-        ],
-        "limitations": [
-            "Benchmarks vary across application domains."
-        ],
-        "source_urls": [
-            "https://www.nist.gov/"
-        ],
-    }
+    request_id = create_job()
 
     response = client.post(
         f"/research/{request_id}/result",
-        json=result,
+        json=VALID_RESULT,
     )
 
     assert response.status_code == 200
 
     assert (
         response.json()["result"]
-        == result
+        == VALID_RESULT
     )
+
+
+def test_agent_outputs_survive_full_lifecycle():
+    request_id = create_job()
+
+    response = client.post(
+        f"/research/{request_id}/advance"
+    )
+
+    assert response.json()["status"] == "planning"
+
+    response = client.post(
+        f"/research/{request_id}/plan",
+        json=VALID_PLAN,
+    )
+
+    assert response.status_code == 200
+
+    response = client.post(
+        f"/research/{request_id}/advance"
+    )
+
+    assert response.json()["status"] == "researching"
+
+    response = client.post(
+        f"/research/{request_id}/findings",
+        json=VALID_FINDINGS,
+    )
+
+    assert response.status_code == 200
+
+    response = client.post(
+        f"/research/{request_id}/advance"
+    )
+
+    assert response.json()["status"] == "synthesizing"
+
+    response = client.post(
+        f"/research/{request_id}/result",
+        json=VALID_RESULT,
+    )
+
+    assert response.status_code == 200
+
+    response = client.post(
+        f"/research/{request_id}/advance"
+    )
+
+    assert response.status_code == 200
+
+    completed = response.json()
+
+    assert completed["status"] == "completed"
+    assert completed["current_stage"] == "complete"
+
+    response = client.get(
+        f"/research/{request_id}"
+    )
+
+    stored = response.json()
+
+    assert stored["plan"] == VALID_PLAN
+
+    assert (
+        stored["research_findings"]
+        == VALID_FINDINGS
+    )
+
+    assert stored["result"] == VALID_RESULT

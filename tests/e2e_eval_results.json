@@ -1,0 +1,54 @@
+{
+  "evaluation_name": "P2 Production E2E Evaluation",
+  "generated_at": "2026-09-06T20:29:13.260025+00:00",
+  "total_cases": 3,
+  "passed_cases": 3,
+  "failed_cases": 0,
+  "completion_rate_percent": 100.0,
+  "average_latency_seconds": 163.73,
+  "average_unique_sources": 21.33,
+  "results": [
+    {
+      "id": "agent_reliability_01",
+      "request_id": "df41285a-3a00-4549-8302-d250c7b3dc2a",
+      "passed": true,
+      "status": "completed",
+      "current_stage": "complete",
+      "plan_saved": true,
+      "findings_saved": true,
+      "final_result_saved": true,
+      "finding_count": 5,
+      "unique_source_count": 32,
+      "unresolved_gap_count": 5,
+      "elapsed_seconds": 184.0
+    },
+    {
+      "id": "rag_evaluation_02",
+      "request_id": "ea2d8776-1f1e-49e1-a19d-5a5966c0b158",
+      "passed": true,
+      "status": "completed",
+      "current_stage": "complete",
+      "plan_saved": true,
+      "findings_saved": true,
+      "final_result_saved": true,
+      "finding_count": 5,
+      "unique_source_count": 16,
+      "unresolved_gap_count": 4,
+      "elapsed_seconds": 136.74
+    },
+    {
+      "id": "tool_agent_security_03",
+      "request_id": "66cf680f-b366-4042-81b8-abc405a52fdc",
+      "passed": true,
+      "status": "completed",
+      "current_stage": "complete",
+      "plan_saved": true,
+      "findings_saved": true,
+      "final_result_saved": true,
+      "finding_count": 5,
+      "unique_source_count": 16,
+      "unresolved_gap_count": 4,
+      "elapsed_seconds": 170.45
+    }
+  ]
+}

@@ -16,7 +16,7 @@ app = FastAPI(
         "tracking, and orchestrating autonomous "
         "research tasks."
     ),
-    version="0.6.0",
+    version="0.7.0",
 )
 
 
@@ -123,7 +123,9 @@ def save_research_result(
 def advance_research_job(
     request_id: str,
 ):
-    job = research_job_store.get(request_id)
+    job = research_job_store.advance(
+        request_id
+    )
 
     if job is None:
         raise HTTPException(
@@ -131,14 +133,4 @@ def advance_research_job(
             detail="Research job not found.",
         )
 
-    if job.status == "completed":
-        raise HTTPException(
-            status_code=409,
-            detail="Research job is already completed.",
-        )
-
-    updated_job = research_job_store.advance(
-        request_id
-    )
-
-    return updated_job.model_dump()
+    return job.model_dump()
